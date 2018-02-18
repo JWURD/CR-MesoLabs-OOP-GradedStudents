@@ -2,16 +2,16 @@ package io.zipcoder;
 
 import com.sun.xml.internal.bind.v2.TODO;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class Classroom {
     private Student[] students;
-    // Helper fields
-    private int studentsEnrolled;
+
+    private int numberOfEnrolledStudents;
 
     public Classroom() {
         this(30);
+        numberOfEnrolledStudents = 0;
     }
 
     public Classroom(int maxStudents) {
@@ -37,10 +37,11 @@ public class Classroom {
      * @return
      */
     public void addStudent(Student student) {
-        //ArrayList<Student> classRoomList = new ArrayList<Student>();
         for (int i = 0; i < students.length; i++) {
+
             if (students[i] == null) {
                 students[i] = student;
+                numberOfEnrolledStudents++;
                 break;
             }
         }
@@ -54,7 +55,6 @@ public class Classroom {
      */
     public boolean removeStudent(String firstName, String lastName) {
 
-
         for (int i = 0; i < students.length; i++) {
             if ((students[i].getFirstName().equals(firstName)) && (students[i].getLastName().equals(lastName))) {
                 students[i] = null;
@@ -64,6 +64,7 @@ public class Classroom {
         Arrays.sort(students);
         return false;
     }
+
 
     /**
      * Define a getter which returns the sum of all exams divded by the number of students.
@@ -76,7 +77,9 @@ public class Classroom {
         double averageScore;
 
         for (int i = 0; i < students.length; i++) {
-            if (students[i] != null) {
+            if (students[i] == null) {
+                break;
+            } else {
                 sumOfAllTestScores += students[i].getAverage();
                 numberOfStudents++;
             }
@@ -87,73 +90,153 @@ public class Classroom {
 
 
     /**
-     * Return a string of student names and their averages, like.
+     * @return
+     */
+
+    public Student[] getClassScores() {
+        Arrays.sort(this.students, compareByAvgScoreThenByName);
+        return this.students;
+    }
+
+
+    /**
+     * Sorts the Students array from highest average to lowest, and ties are broken alphabetically.
+     */
+    /*public void sortStudentsByScore() {
+
+    }*/
+
+    /**
+     * CHALLENGE METHOD: Don't stress on this.  It's just a little something to challenge you.
+     * Must return a string like in `getClassScore`, except it should look like this:
+     * Grades:
+     * Lisa Simpson -> A
+     * Milhouse Van Houten -> B
+     * Bart Simpson -> C
+     * Homer Simpson -> F
      * <p>
-     * Students:
-     * Bart Simpson -> 72.4
-     * Homer Simpson -> 0.1
-     * Lisa Simpson -> 100.0
-     * Milhouse Van Houten -> 87.6
+     * And if there are no student's, just return No students.
      * <p>
-     * If there are no students in the array, return No Students.
+     * The way the grading is done is by a bell curve where, ideally, the grades should be distributed like this:
+     * 10% get A
+     * 25% get B
+     * 30% get C
+     * 25% get D
+     * 10% get F
+     * <p>
+     * Don't stress too much on the grading, but show that you can separate students into those
+     * sections and then print that out.
      *
      * @return
      */
 
 
-    public Student[] getClassScores() {
+    public String gradeGradeBookToString() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry gradeBookToString : getGradeBook().entrySet()) {
+            if (gradeBookToString.getValue() == null) {
+                break;
+            }
+            sb.append(gradeBookToString.getKey() + ":" + gradeBookToString.getValue() + "\n");
+        }
+        return sb.toString();
+    }
 
-        Student temp;
-// bubble sort
-        for (int i = 0; i < students.length -1; i++) {
+    public HashMap<Student, Character> getGradeBook() {
+        Student[] students = getClassScores();
+        HashMap<Student, Character> mapOfStudentsWithLetterGrade = new HashMap<Student, Character>();
+        for (Student s : students) {
+            if (s == null) {
+                break;
+            }
+            mapOfStudentsWithLetterGrade.put(s, getStudentGrade(s));
+        }
+        return mapOfStudentsWithLetterGrade;
+    }
+
+    /**
+     *
+     * @param averages
+     * @param percentile
+     * @return
+     */
+    public double percentileThreshold(double[] averages, double percentile) {
+        int index = (int) Math.ceil(percentile * (double) numberOfEnrolledStudents);
+        double result = (averages[numberOfEnrolledStudents - index] + averages[numberOfEnrolledStudents - (index + 1)]) / 2;
+        return result;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public double[] getAllStudentsAvgExamSores() {
+        double[] studentsAvgScores = new double[getStudents().length];
+        for (int i = 0; i < students.length; i++) {
             if (students[i] == null) {
                 break;
             }
-            for (int j = 0; j < students.length - i - 1; j++) {
-                if (students[j].getAverage() < students[j + 1].getAverage() ||) {
-                    boolean swapped = false;
-                    temp = students[j];
-                    students[j] = students[j + 1];
-                    students[j + 1] = temp;
-                    swapped = true;
+            studentsAvgScores[i] = students[i].getAverage();
+        }
+        return studentsAvgScores;
+    }
+
+    /**
+     *
+     * @param student
+     * @return
+     */
+    public Character getStudentGrade(Student student) {
+       getClassScores();
+       double[] studentAvgScore = getAllStudentsAvgExamSores();
+        if (student.getAverage() >= percentileThreshold(studentAvgScore,.9)) {
+            return 'A';
+        } else if (student.getAverage() >= percentileThreshold(studentAvgScore,.71)) {
+            return 'B';
+        } else if (student.getAverage() >= percentileThreshold(studentAvgScore,.5)) {
+            return 'C';
+        } else if (student.getAverage() >= percentileThreshold(studentAvgScore,.11)) {
+            return 'D';
+        }
+        return 'F';
+    }
+
+    public static Comparator<Student> compareByAvgScoreThenByName = new Comparator<Student>() {
+        @Override
+        public int compare(Student student1, Student student2) {
+            if (student1 == null || student2 == null) {
+                return 0;
+            }
+            if (student1.getAverage() < student2.getAverage()) {
+                return 1;
+            } else if (student1.getAverage() > student2.getAverage()) {
+                return -1;
+            } else {
+                if (student1.getLastName().equals(student2.getLastName())) {
+                    return sortByFirstName(student1, student2);
                 }
-
             }
-            return students;
+            return sortByLastName(student1, student2);
         }
+    };
 
-
-            /**
-             * Sorts the Students array from highest average to lowest, and ties are broken alphabetically.
-             */
-            public void sortStudentsByScore () {
-
-            }
-
-            /**
-             * CHALLENGE METHOD: Don't stress on this.  It's just a little something to challenge you.
-             * Must return a string like in `getClassScore`, except it should look like this:
-             * Grades:
-             * Lisa Simpson -> A
-             * Milhouse Van Houten -> B
-             * Bart Simpson -> C
-             * Homer Simpson -> F
-             * <p>
-             * And if there are no student's, just return No students.
-             * <p>
-             * The way the grading is done is by a bell curve where, ideally, the grades should be distributed like this:
-             * 10% get A
-             * 25% get B
-             * 30% get C
-             * 25% get D
-             * 10% get F
-             * <p>
-             * Don't stress too much on the grading, but show that you can separate students into those
-             * sections and then print that out.
-             *
-             * @return
-             */
-            public String gradeClass () {
-                return null;
-            }
+    public static int sortByFirstName(Student student1, Student student2) {
+        if (student1.getFirstName().compareToIgnoreCase(student2.getFirstName()) < 0) {
+            return -1;
+        } else if (student1.getFirstName().compareToIgnoreCase(student2.getFirstName()) > 1) {
+            return 1;
         }
+        return 0;
+    }
+
+    public static int sortByLastName(Student student1, Student student2) {
+        if (student1.getLastName().compareToIgnoreCase(student2.getLastName()) < 0) {
+            return -1;
+        } else if (student1.getLastName().compareToIgnoreCase(student2.getLastName()) > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+}
+

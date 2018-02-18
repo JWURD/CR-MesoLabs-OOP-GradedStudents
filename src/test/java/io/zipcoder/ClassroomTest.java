@@ -21,7 +21,7 @@ public class ClassroomTest {
 
 
         student = new Student ("James", "Will", new Double[]{95.4, 95.5, 75.5});
-        student1 = new Student ("So", "What", new Double[]{95.4, 95.5, 75.5});
+        student1 = new Student ("Jamei", "Will", new Double[]{95.4, 95.5, 75.5});
         student2 = new Student ("Girl", "Nextdoor", new Double[]{100.0, 95.5, 85.5});
 
          myClassRoom = new Classroom();
@@ -53,25 +53,52 @@ public class ClassroomTest {
 
     @Test
     public void getClassAverageTest() {
-        Double expected = 91.0;
+        Double expected = 89.0;
         Double actual = myClassRoom.getClassAverage();
       Assert.assertEquals(expected, actual, ROUND_DELTA );
     }
 
+
     @Test
     public void getClassScoresTest() {
      Student[] expected = new Student[30];
-     Student[] actual = new Student[30];
-     actual = myClassRoom.getClassScores();
+     expected[0] = student2;
+     expected[1] = student1;
+     expected[2] = student;
+     Student[] actual = myClassRoom.getClassScores();
 
      assertArrayEquals(expected, actual);
     }
 
     @Test
-    public void sortStudentsByScore() {
+    public void percentileThreshold(){
+        double a = .10;
+        myClassRoom.getAllStudentsAvgExamSores();
+       double actual = myClassRoom.percentileThreshold( myClassRoom.getAllStudentsAvgExamSores(), a);
+
+        Assert.assertEquals(91.5,  actual, ROUND_DELTA);
     }
 
     @Test
-    public void gradeClass() {
+    public void getGradeBookTest(){
+        Student student3 = new Student ("Dan", "Will", new Double[]{100.0, 95.5, 60.0});
+        Student student4 = new Student ("Chris", "Will", new Double[]{13.0, 95.5, 12.0});
+        Student student5 = new Student ("Some", "Nextdoor", new Double[]{100.0, 95.5, 85.5});
+        Student  student6 = new Student ("House", "Will", new Double[]{95.4, 95.5, 75.5});
+        Student student7 = new Student ("Sam", "Will", new Double[]{95.4, 95.5, 15.0});
+        Student student8 = new Student ("Girl", "Nextdoor", new Double[]{100.0, 95.5, 85.5});
+        Student student9= new Student ("James", "Will", new Double[]{100.0, 100.0, 100.0});
+        myClassRoom.addStudent(student3);
+        myClassRoom.addStudent(student4);
+        myClassRoom.addStudent(student5);
+        myClassRoom.addStudent(student6);
+        myClassRoom.addStudent(student7);
+        myClassRoom.addStudent(student8);
+        myClassRoom.addStudent(student9);
+
+        String expected = "";
+        String actual =  myClassRoom.gradeGradeBookToString();
+        Assert.assertEquals(expected, actual);
     }
+
 }
